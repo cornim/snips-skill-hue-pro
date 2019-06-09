@@ -26,20 +26,21 @@ class SnipsConfigParser():
 
     @staticmethod
     def _convert_from_dict(config_dict):
-        try:
-            config = ConfigParser()
-            config.add_section(GLOBAL_SECTION)
-            config.add_section(SECRET_SECTION)
-            config[GLOBAL_SECTION][BRIDGE_IP_KEY] = config_dict[BRIDGE_IP_KEY]
-            config[SECRET_SECTION][API_KEY_KEY] = config_dict[API_KEY_KEY]
-        except Exception:
-            traceback.print_exc()
+        config = ConfigParser()
+        config.add_section(GLOBAL_SECTION)
+        config.add_section(SECRET_SECTION)
+        if config_dict:
+            try:
+                config[GLOBAL_SECTION][BRIDGE_IP_KEY] = config_dict[BRIDGE_IP_KEY]
+                config[SECRET_SECTION][API_KEY_KEY] = config_dict[API_KEY_KEY]
+            except Exception:
+                traceback.print_exc()
         return config
 
     @staticmethod
     def read_configuration_file():
         if not os.path.isfile(CONFIG_FILE):
-            SnipsConfigParser.write_configuration_file(SnipsConfigParser._convert_from_dict(None))
+            SnipsConfigParser.write_configuration_file_from_dict(SnipsConfigParser._convert_from_dict(None))
         try:
             with open(CONFIG_FILE, encoding=CONFIGURATION_ENCODING_FORMAT, mode='r') as f:
                 config = ConfigParser()
