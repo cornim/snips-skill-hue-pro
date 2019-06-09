@@ -1,17 +1,15 @@
 # snips-skill-hue-pro
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/snipsco/snips-skill-hue-pro/blob/master/LICENSE)
+Complete rewrite of the skill with the following changes:
 
-This repository contains the code used by Smart Light - Hue bundle. 
-
-## User Guide
-
-***The full documentation, please reach [here](https://snips.gitbook.io/documentation/snips-app/smart-light-hue)***
-
-## Contributing
-
-Please see the [Contribution Guidelines](https://github.com/snipsco/snips-skill-hue-pro/blob/master/CONTRIBUTING.md).
+- Put under GPL license
+- Make it python 3 compatible
+- Use fuzzy matching for room and scene matching
+- Removed setting of light color directly
+- Improved hue configuration and config.ini handling
+- Improved error handling
+- Removal of lots of unnecessary code (~50%)
 
 ## Copyright
 
-This library is provided by [Snips](https://www.snips.ai) as Open Source software. See [LICENSE](https://github.com/snipsco/snips-skill-hue-pro/blob/master/LICENSE) for more information.
+This library is provided by Cornelius Mund as Open Source software. See LICENSE file for more information.

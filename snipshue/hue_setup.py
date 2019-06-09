@@ -3,69 +3,64 @@
 
 import requests
 import json
-import os
-import errno
 import sys
 
-cache_file_name = 'credentials.json'
 
 class HueSetup:
-    """ Get or create infos to connect to Philips Hue """
-
-    bridge_url = None
-    username = None
-
-    def __init__(self, bridge_ip=None, username=None):
+    @staticmethod
+    def validate_config(bridge_ip, api_key):
+        config_changed = False
         if bridge_ip is None:
-            bridge_ip = self._get_bridge_ip()
-            username = None
-        if username is None or not self._is_connected(bridge_ip, username):
-            username = self._connect_user(bridge_ip)
-        self.bridge_url = self._create_url(bridge_ip, username)
-        self.username = username
-        self.bridge_ip = bridge_ip
+            bridge_ip = HueSetup._get_bridge_ip()
+            api_key = None
+        if api_key is None or not HueSetup._is_connected(bridge_ip, api_key):
+            api_key = HueSetup._connect_user(bridge_ip)
+            config_changed = True
+        return bridge_ip, api_key, config_changed
 
-    def get_username(self):
-        return self.username
-
-    def get_bridge_ip(self):
-        return self.bridge_ip
-
-    def _get_bridge_ip(self):
+    @staticmethod
+    def _get_bridge_ip():
+        bridge_ip_json_key = "internalipaddress"
         response = requests.get('http://www.meethue.com/api/nupnp').json()
         if type(response) is list:
-            return response[0]["internalipaddress"]
+            if len(response) == 1:
+                return response[0][bridge_ip_json_key]
+            else:
+                return response[0][bridge_ip_json_key]
         else:
-            return response["internalipaddress"]
+            return response[bridge_ip_json_key]
 
-    def _is_connected(self, bridge_ip, username):
-        is_connected = False
-        resource = {'which':'system'}
-        response = requests.get(self._create_url(bridge_ip, username)).json()
+    @staticmethod
+    def _is_connected(bridge_ip, api_key):
+        response = requests.get(HueSetup._create_url(bridge_ip, api_key)).json()
         if 'lights' in response:
-            print 'Connected to the Hub'
-            is_connected = True
+            print('Connected to the Hub')
+            return True
         elif 'error' in response[0]:
-            error = response[0]['error']
-            if error['type'] == 1:
-                is_connected = False
-        return is_connected
+            if response[0]['error']['type'] == 1:
+                return False
+        else:
+            print('Strange error. No lights connected to hue bridge but no error either.')
+            print("Http response:\n{}".format(str(response)))
+            return False
 
-    def _connect_user(self, bridge_ip):
+    @staticmethod
+    def _connect_user(bridge_ip):
         created = False
-        print '[!] Please, press the button on the Hue bridge'
+        print('[!] Please, press the button on the Hue bridge')
         while not created:
             payload = json.dumps({'devicetype': 'snipshue'})
             response = requests.post("http://" + bridge_ip + "/api", data=payload).json()
             if 'error' in response[0]:
                 if response[0]['error']['type'] != 101:
-                    print 'Unhandled error creating configuration on the Hue'
+                    print('Unhandled error creating configuration on the Hue')
                     sys.exit(response)
             else:
-                username = response[0]['success']['username']
+                api_key = response[0]['success']['username']
                 created = True
-        print 'User connected'
-        return (username)
+        print('User connected')
+        return api_key
 
-    def _create_url(self, bridge_ip, username):
+    @staticmethod
+    def _create_url(bridge_ip, username):
         return 'http://{}/api/{}'.format(bridge_ip, username)
